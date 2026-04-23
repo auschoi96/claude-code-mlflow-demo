@@ -72,7 +72,7 @@ followed_databricks_best_practices = make_judge(
         "Otherwise return 'no' with a rationale pointing at the specific violating span."
     ),
     feedback_value_type=Literal["yes", "no"],
-    model=f"endpoints:/{JUDGE_ENDPOINT}",
+    model=f"databricks:/{JUDGE_ENDPOINT}",
 )
 
 used_correct_api = make_judge(
@@ -84,7 +84,7 @@ used_correct_api = make_judge(
         "Return 'yes' or 'no' with a short rationale."
     ),
     feedback_value_type=Literal["yes", "no"],
-    model=f"endpoints:/{JUDGE_ENDPOINT}",
+    model=f"databricks:/{JUDGE_ENDPOINT}",
 )
 
 produced_runnable_code = make_judge(
@@ -96,7 +96,7 @@ produced_runnable_code = make_judge(
         "execution succeeded, 'no' otherwise."
     ),
     feedback_value_type=Literal["yes", "no"],
-    model=f"endpoints:/{JUDGE_ENDPOINT}",
+    model=f"databricks:/{JUDGE_ENDPOINT}",
 )
 
 followed_constraints = make_judge(
@@ -110,7 +110,7 @@ followed_constraints = make_judge(
         "or 'no' with the specific violated constraint in the rationale."
     ),
     feedback_value_type=Literal["yes", "no"],
-    model=f"endpoints:/{JUDGE_ENDPOINT}",
+    model=f"databricks:/{JUDGE_ENDPOINT}",
 )
 
 # COMMAND ----------
