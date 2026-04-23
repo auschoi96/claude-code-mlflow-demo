@@ -15,12 +15,13 @@
 # MAGIC - https://mlflow.org/docs/latest/genai/eval-monitor/ai-insights/detect-issues/
 # MAGIC - https://mlflow.org/blog/issue-detection
 # MAGIC
-# MAGIC Two entry points are shown: a **UI walkthrough** (primary for the live demo)
-# MAGIC and a **programmatic API** path for automation / CI.
+# MAGIC Issue detection is currently a **UI-only** feature — there is no public
+# MAGIC `mlflow.genai.detect_issues` Python API or REST endpoint yet. This notebook
+# MAGIC prints the experiment link and walks through the click-path to demo live.
 
 # COMMAND ----------
 
-# MAGIC %pip install --quiet --upgrade "mlflow[databricks]>=3.8" databricks-sdk
+# MAGIC %pip install --quiet --upgrade "mlflow[databricks]>=3.8"
 # MAGIC dbutils.library.restartPython()
 
 # COMMAND ----------
@@ -30,7 +31,6 @@ import mlflow
 from mlflow import MlflowClient
 
 EXPERIMENT_PATH = "/Users/austin.choi@databricks.com/claude-code-demo"
-JUDGE_ENDPOINT = os.environ.get("JUDGE_ENDPOINT", "databricks-claude-sonnet-4")
 
 mlflow.set_tracking_uri("databricks")
 experiment = MlflowClient().get_experiment_by_name(EXPERIMENT_PATH)
@@ -43,7 +43,7 @@ print(f"Open in UI:  {WORKSPACE_HOST}/ml/experiments/{EXPERIMENT_ID}?compareRuns
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Path A — UI walkthrough (demo this live)
+# MAGIC ## UI walkthrough (demo this live)
 # MAGIC
 # MAGIC 1. Open the experiment URL printed above.
 # MAGIC 2. Click the **Traces** tab.
@@ -62,52 +62,6 @@ print(f"Open in UI:  {WORKSPACE_HOST}/ml/experiments/{EXPERIMENT_ID}?compareRuns
 # MAGIC
 # MAGIC This is the view to screenshot for customer conversations — it demonstrates MLflow's
 # MAGIC value better than any single-trace screenshot.
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Path B — Programmatic detection
-# MAGIC
-# MAGIC For automation (e.g. nightly CI, scheduled monitoring, or integrating issue detection
-# MAGIC results into a DBSQL dashboard) call the detection API directly.
-# MAGIC
-# MAGIC The function below tries `mlflow.genai.detect_issues` first; if the installed
-# MAGIC MLflow build exposes only the REST surface, it falls back to the Databricks
-# MAGIC `/api/2.0/mlflow/issue-detection/analyze` endpoint.
-
-# COMMAND ----------
-
-CATEGORIES = ["correctness", "latency", "execution", "adherence", "relevance", "safety"]
-
-def run_issue_detection(experiment_id: str, categories: list[str], endpoint: str):
-    """Kick off issue detection and return a job / run handle."""
-    genai = getattr(mlflow, "genai", None)
-    detect_fn = getattr(genai, "detect_issues", None) if genai else None
-
-    if callable(detect_fn):
-        print("Using mlflow.genai.detect_issues()")
-        return detect_fn(
-            experiment_id=experiment_id,
-            categories=categories,
-            judge_model=f"databricks:/{endpoint}",
-        )
-
-    # Fallback: REST.
-    print("Falling back to REST: POST /api/2.0/mlflow/issue-detection/analyze")
-    from databricks.sdk import WorkspaceClient
-    w = WorkspaceClient()
-    return w.api_client.do(
-        method="POST",
-        path="/api/2.0/mlflow/issue-detection/analyze",
-        body={
-            "experiment_id": experiment_id,
-            "categories": [c.upper() for c in categories],
-            "judge_endpoint": endpoint,
-        },
-    )
-
-result = run_issue_detection(EXPERIMENT_ID, CATEGORIES, JUDGE_ENDPOINT)
-print(result)
 
 # COMMAND ----------
 
