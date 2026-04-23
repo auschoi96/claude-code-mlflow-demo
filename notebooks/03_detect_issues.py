@@ -89,7 +89,7 @@ def run_issue_detection(experiment_id: str, categories: list[str], endpoint: str
         return detect_fn(
             experiment_id=experiment_id,
             categories=categories,
-            judge_model=f"endpoints:/{endpoint}",
+            judge_model=f"databricks:/{endpoint}",
         )
 
     # Fallback: REST.
